@@ -1,0 +1,11 @@
+{
+  "name": "disco",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "nasm -f elf64 disco.asm -o disco.o && ld disco.o -o disco",
+    "start": "./disco",
+    "dev": "yarn build && yarn start"
+  }
+}
