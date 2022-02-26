@@ -1,7 +1,7 @@
 
 
 section .data
-  text db "abc",10,0
+  
 
 section .bss
   stackArguments resb 64

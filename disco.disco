@@ -1,3 +1,4 @@
 
 link log
-log("hello\n")
+log("Hello")
+log("World")
