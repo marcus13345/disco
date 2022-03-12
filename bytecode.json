@@ -1,0 +1,21 @@
+[
+  {
+    "type": "KEYWORD",
+    "value": "LINK"
+  },
+  {
+    "type": "IDENTIFIER",
+    "value": "log1"
+  },
+  {
+    "type": "NEWLINE"
+  },
+  {
+    "type": "KEYWORD",
+    "value": "LINK"
+  },
+  {
+    "type": "IDENTIFIER",
+    "value": "log2"
+  }
+]

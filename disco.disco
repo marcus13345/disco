@@ -1,4 +1,18 @@
 
+link log1
+link log2
+
+
+
 link log
-log("Hello")
+const test = "Hello"
+const    test2 ="Hello2"
+const test3 = 'Hello'
+const a="5"
+log(test)
 log("World")
+log("Hello\n \"Wor(l)d\"\n\\o/")
+
+
+
+
