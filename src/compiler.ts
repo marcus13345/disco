@@ -5,8 +5,8 @@ const rname = () => (new Array(8).fill(''))
   ]).join('');
 
 const linkables = {
-  log: require('./linkables/log.js'),
-  exit: require('./linkables/exit.js')
+  log: require('../linkables/log.js'),
+  exit: require('../linkables/exit.js')
 };
 
 const callingConvention = {
@@ -109,7 +109,7 @@ function compileStatement(item) {
       compileInvocation(item.value, ...item.args);
       break;
     }
-    case 'var': {
+    case 'const': {
       compileVariable(item.name, item.value);
       break;
     }
@@ -119,11 +119,9 @@ function compileStatement(item) {
   }
 }
 
-function compile(tree) {
+export function compile(tree) {
   for(const item of tree.value) {
     compileStatement(item);
   }
   return sections.data() + '\n' + sections.text();
 }
-
-module.exports = compile;

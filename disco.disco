@@ -1,8 +1,4 @@
 
-link log1
-link log2
-
-
 
 link log
 const test = "Hello"

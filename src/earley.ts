@@ -3,7 +3,7 @@ import * as chalk from 'chalk';
 const rgb2ansi = (r: number, g: number, b: number) => r * 36 + g * 6 + b + 16
 const ansi = (r: number, g = r, b = r) => chalk.ansi256(rgb2ansi(r, g, b));
 
-abstract class Token {
+export abstract class Token {
   l: number;
   c: number;
   static terminal: boolean;
@@ -31,8 +31,9 @@ abstract class Token {
            ansi(2)(')')
   }
 }
-class NonTerminal extends Token { static terminal: false = false };
-class Terminal extends Token { static terminal: true = true };
+
+export class NonTerminal extends Token { static terminal: false = false };
+export class Terminal extends Token { static terminal: true = true };
 
 function isTerminal(tokenClass: TokenClass): tokenClass is TerminalTokenClass {
   return tokenClass.terminal;
@@ -45,14 +46,6 @@ function isNonTerminal(tokenClass: TokenClass): tokenClass is NonTerminalTokenCl
 type TerminalTokenClass = { new(...args: any[]) : Terminal, terminal: true }
 type NonTerminalTokenClass = { new(...args: any[]) : NonTerminal, terminal: false }
 type TokenClass = TerminalTokenClass | NonTerminalTokenClass;
-
-// class Identifier extends Token { constructor(l, c, value) { super(l, c); this.value = value; } }
-class $Number extends Terminal { value: string; constructor(l: number, c: number, value: string) { super(l, c); this.value = value; } }
-class $Plus extends Terminal { }
-class $Times extends Terminal { }
-class $Term extends NonTerminal { }
-class $Poop extends NonTerminal { }
-class $Addition extends NonTerminal { }
 
 function getTokenClassFromToken(token: Token): TokenClass {
   return token.constructor as TokenClass;
@@ -88,13 +81,13 @@ class TimeMachine<T> {
   }
 }
 
-interface Production {
+export interface Production {
   left: TokenClass;
   right: TokenClass[];
-  // resolver: (...args: any[]) => any;
+  resolver?: (...args: any[]) => any;
 }
 
-class Grammar {
+export class Grammar {
   private productions: Production[];
   private startingSymbol: NonTerminalTokenClass;
 
@@ -108,16 +101,17 @@ class Grammar {
 
     const possibleStartingProductions = getProductionsForTokenClass(this.productions, this.startingSymbol)
     for(const production of possibleStartingProductions) {
-      state.current.partialMatches.push(new PartialMatch(production, 0, state.currentIndex));
+      state.current.partialMatches.push(new PartialMatch(production, 0, state.currentIndex, []));
     }
 
     // expand all non terminals here again
     const expand = (partial: PartialMatch) => {
       if(partial.complete) {
+        const resolvedData = partial.resolve();
         const pastPartials = state.stateByIndex(partial.source).partialMatches;
         for(const pastPartial of pastPartials) {
           if(pastPartial.nextTokenClass === partial.production.left) {
-            const newPartial = pastPartial.getAdvancedCopy();
+            const newPartial = pastPartial.getAdvancedCopy(resolvedData);
             expand(newPartial);
             state.current.partialMatches.push(newPartial);
           }
@@ -128,7 +122,7 @@ class Grammar {
       if(isTerminal(nextTokenClass)) return;
       const possibleProductions = getProductionsForTokenClass(this.productions, nextTokenClass);
       for(const production of possibleProductions) {
-        const partialMatch = new PartialMatch(production, 0, state.currentIndex);
+        const partialMatch = new PartialMatch(production, 0, state.currentIndex, []);
         expand(partialMatch);
         state.current.partialMatches.push(partialMatch)
       }
@@ -139,7 +133,7 @@ class Grammar {
     // expand all non terminals here
 
     console.log(ansi(3, 3, 0)('s') + ansi(4, 4, 0)(state.currentIndex) + ': ' + this.startingSymbol.toString());
-    console.log(state.current.toString(), '\n\n')
+    console.log(state.current.toString(), '\n')
 
     for(const token of tokens) {
       state.newState();
@@ -149,7 +143,7 @@ class Grammar {
         if(partialMatch.complete) continue;
         // if our current token falls in line with what we need, then yeah, lets do it.
         if(token instanceof partialMatch.nextTokenClass) {
-          state.current.partialMatches.push(partialMatch.getAdvancedCopy());
+          state.current.partialMatches.push(partialMatch.getAdvancedCopy(token));
         }
       }
 
@@ -158,8 +152,18 @@ class Grammar {
       state.current.partialMatches.forEach(expand);
       state.current.deduplicate()
 
-      console.log(state.current.toString(), '\n\n')
+      console.log(state.current.toString(), '\n')
     }
+
+    const completedResolutions = [];
+
+    for(const partial of state.current.partialMatches) {
+      if(partial.complete && partial.source === 0) {
+        completedResolutions.push(partial.resolve());
+      }
+    }
+
+    return completedResolutions;
   }
 }
 
@@ -182,10 +186,12 @@ class PartialMatch {
   readonly production: Production;
   readonly progress: number = 0;
   readonly source: number = 0;
-  constructor(production: Production, completion: number, source: number) {
+  readonly resolvedData = [];
+  constructor(production: Production, completion: number, source: number, resolvedData: any[]) {
     this.production = production;
     this.progress = completion;
     this.source = source;
+    this.resolvedData = resolvedData;
   }
   get complete() {
     return this.production.right.length === this.progress;
@@ -197,8 +203,15 @@ class PartialMatch {
   //   if()
   //   return getFirstTerminalsForTokenClass
   // }
-  getAdvancedCopy() {
-    return new PartialMatch(this.production, this.progress + 1, this.source);
+  resolve() {
+    if('resolver' in this.production) {
+      return this.production.resolver(...this.resolvedData);
+    } else {
+      return this.resolvedData;
+    }
+  }
+  getAdvancedCopy(resolvedData: any) {
+    return new PartialMatch(this.production, this.progress + 1, this.source, [...this.resolvedData, resolvedData]);
   }
   toString() {
     const rightSide = [];
@@ -208,7 +221,7 @@ class PartialMatch {
       rightSide.push(this.production.right[i].toString())
     }
     if(this.complete) addDot();
-    return this.production.left.toString() + ansi(2, 2, 2)(' => ') + rightSide.join(' ') + ansi(2, 2, 2)(' (' + this.source + ')')
+    return this.production.left.toString() + ansi(2, 2, 2)(' => ') + rightSide.join(' ') + ansi(2, 2, 2)(' (' + this.source + ')');
   }
 }
 
@@ -237,28 +250,5 @@ class SingleEarleyState {
   }
 }
 
-const tokens: Token[] = [
-  new $Number(1, 1, '45'),
-  new $Plus(1, 3),
-  new $Number(1, 1, '45'),
-  new $Times(1, 3),
-  new $Number(1, 1, '45'),
-  new $Plus(1, 3),
-  new $Number(1, 1, '45'),
-]
 
 
-const ps: Production[] = [
-  {
-    left: $Term, right: [$Addition, $Times, $Addition]
-  },
-  {
-    left: $Addition, right: [$Number, $Plus, $Number]
-  },
-]
-
-const grammar = new Grammar(ps, $Term);
-
-console.log(grammar.solveFor(tokens));
-
-// console.log(getFirstTerminalsForTokenClass(ps, $Term))

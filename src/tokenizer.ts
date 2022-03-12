@@ -1,21 +1,17 @@
-const chalk = require('chalk');
+import * as chalk from 'chalk';
+import { readFileSync, writeFileSync } from 'fs';
+import { $Identifier, $KeywordConst, $KeywordEquals, $KeywordLink, $KeywordLParen, $KeywordRParen, $Newline, $String } from './grammar';
 
-// const keywords = new Map([
-//   ['=', 'EQUALS'],
-//   ['(', 'LPAREN'],
-//   [')', 'RPAREN'],
-//   ['link', 'LINK'],
-//   ['const', 'CONST'],
-// ]);
 
-// const Tokens = {
-//   Keyword(str) { return { type: 'KEYWORD', value: keywords.get(str) } },
-//   Newline() { return { type: 'NEWLINE' } },
-//   Identifier(str) { return { type: 'IDENTIFIER', value: str } },
-//   String(str) { return { type: 'STRING', value: str } }
-// }
+const keywords = new Map([
+  ['=', $KeywordEquals],
+  ['(', $KeywordLParen],
+  [')', $KeywordRParen],
+  ['link', $KeywordLink],
+  ['const', $KeywordConst],
+]);
 
-function tokenize(string) {
+export function tokenize(string) {
   let inString = false;
   let escaping = false;
   let tokens = [];
@@ -25,26 +21,26 @@ function tokenize(string) {
   // const newline = () => (col = 1, line ++);
   // const nextColumn = () => line ++;
   const resetToken = () => token = '';
-  const addToken = (_token) => {
-    tokens.push(_token ?? token);
-    resetToken();
+  const addToken = (_token?) => {
+    if(_token) {
+      token = _token;
+    }
+    if(token.trim() !== '') {
+      if(keywords.has(token)) {
+        const kwTokenClass = keywords.get(token);
+        tokens.push(new kwTokenClass(0, 0));
+      } else if (isStringDelim(token[0]))
+        tokens.push(new $String(0, 0, token.substring(1, token.length - 1)));
+      else if (token === 'NEWLINE')
+        tokens.push(new $Newline(0, 0))
+      else
+        tokens.push(new $Identifier(0, 0, token));
+      resetToken();
+    }
   }
-  // // let _line = line;
-  // // let _col = col;
-  // if(_token) {
-  //   token = _token;
-  // }
-  // if(token.trim() !== '') {
-  //   if(keywords.has(token))
-  //     tokens.push(Tokens.Keyword(token));
-  //   else if (isStringDelim(token[0]))
-  //     tokens.push(Tokens.String(token));
-  //   else if (token === 'NEWLINE')
-  //     tokens.push(Tokens.Newline())
-  //   else
-  //     tokens.push(Tokens.Identifier(token));
-  //   resetToken();
-  // }
+  // let _line = line;
+  // let _col = col;
+
   const isWhitespace = (char) => [' ', '\n', '\t', '\r'].includes(char);
   const isNewline = (char) => char === '\n';
   const isSingleCharToken = (char) => ['(', ')', '='].includes(char);
@@ -87,11 +83,3 @@ function tokenize(string) {
 
   return tokens;
 }
-
-module.exports = tokenize;
-
-const tokens = tokenize(require('fs').readFileSync('disco.disco').toString('utf-8'));
-
-
-require('fs').writeFileSync('bytecode.json', JSON.stringify(tokens, null, 2))
-
