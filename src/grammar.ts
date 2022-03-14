@@ -7,21 +7,8 @@ export class $KeywordLParen extends Terminal { }
 export class $KeywordRParen extends Terminal { }
 export class $KeywordConst extends Terminal { }
 
-export class $String extends Terminal {
-  value: string;
-  constructor(l: number, c: number, value: string) {
-    super(l, c);
-    this.value = value;
-  }
-}
-
-export class $Identifier extends Terminal {
-  value: string;
-  constructor(l: number, c: number, value: string) {
-    super(l, c);
-    this.value = value;
-  }
-}
+export class $String extends Terminal {}
+export class $Identifier extends Terminal {}
 
 export class $Newline extends Terminal { }
 

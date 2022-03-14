@@ -1,15 +1,15 @@
-  global _main
 section .data
-  UMRRSQMF db 72,101,108,108,111,32,87,111,114,108,100,0
+  EFDNYLFZ db 72,101,108,108,111,32,87,111,114,108,100,0
 section .text
-_main:
+  global _start
+_start:
   push rbp
   mov rbp, rsp
-  mov rdi, UMRRSQMF
+  mov rdi, EFDNYLFZ
   call _log
   mov rsp, rbp
   pop rbp
-  mov rax, 0x02000001
+  mov rax, 60
   mov rdi, 0
   syscall
 _log:
@@ -24,12 +24,12 @@ _log_loop:
   jmp _log_loop
 _log_loop_end:
   mov rdx, rbx
-  mov rax, 0x02000004
+  mov rax, 1
   mov rdi, 1
   pop rsi
   syscall
   push 10
-  mov rax, 0x02000004
+  mov rax, 1
   mov rdi, 1
   mov rsi, rsp
   mov rdx, 1

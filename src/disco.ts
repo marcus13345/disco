@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
-// const AST = require('../ast.js');
-// const compile = require('../compiler.js');
-
 import { readFileSync } from "fs";
 import { compile } from "./compiler";
-import grammar, { $Newline } from "./grammar";
+import grammar from "./grammar";
 import { tokenize } from "./tokenizer";
+import colorize from "./util/asm/colorize";
+import { printTokens } from "./util/utils";
 
 console.log();
 console.log('=== Original ===');
@@ -15,15 +14,12 @@ console.log(fileContents)
 
 console.log('=== Tokenization ===');
 const tokens = tokenize(fileContents);
-for(const token of tokens) {
-  process.stdout.write(token.toString() + '  ');
-  if(token instanceof $Newline) console.log();
-}
+printTokens(tokens);
 
 console.log();
 console.log('=== Parsing ===');
 
-const ast = grammar.solveFor(tokens)[0];
+const ast = grammar.solveFor(tokens, { silent: false })[0];
 
 console.log();
 console.log('=== AST ===');
@@ -36,7 +32,7 @@ const asmFile = compile(ast)
 try {
   console.log();
   console.log('=== ASM ===');
-  console.log(asmFile);
+  console.log(colorize(asmFile));
   require('fs').writeFileSync('disco_test.asm', asmFile);
 
   console.log();

@@ -1,6 +1,12 @@
 import { TerminalTokenClass } from "../earley";
+import { inspect } from 'util';
 
-export function createTokenizer(tokenMap: Map<string | RegExp, TerminalTokenClass>) {
+interface TokenMatcher {
+  match: RegExp | string,
+  token: TerminalTokenClass
+}
+
+export function createTokenizer(tokenMap: TokenMatcher[]) {
   return function tokenize(str: string) {
     let tokens = [];
     let token = '';
@@ -11,10 +17,13 @@ export function createTokenizer(tokenMap: Map<string | RegExp, TerminalTokenClas
       column++;
       token += char;
 
-      for(const [matcher, tokenClass] of tokenMap) {
+      for(const {match: matcher, token: tokenClass} of tokenMap) {
         if(typeof matcher === 'string') {
           if(matcher === token) {
-            tokens.push(new tokenClass(line, column, token));
+            if(tokenClass !== null) {
+              tokens.push(new tokenClass(line, column - token.length + 1, token));
+            }
+            token = '';
           } else {
             // dw about it
           }
@@ -34,9 +43,19 @@ export function createTokenizer(tokenMap: Map<string | RegExp, TerminalTokenClas
                 // ! matches, then testing them for their lookahead afterwards
                 // ! in another loop, and only tokenizing if you have only one
                 // ! option, and that option will fail on the lookahead.
+                if(tokenClass !== null) {
+                  tokens.push(new tokenClass(line, column - token.length + 1, token));
+                }
+                token = '';
+              } else {
+                // the lookahead matches this too, so we should probably hold off
+                // on tokenizing it...
               }
             } else {
-              tokens.push(new tokenClass(line, column, token));
+              if(tokenClass !== null) {
+                tokens.push(new tokenClass(line, column - token.length + 1, token));
+              }
+              token = '';
             }
           }
         }
@@ -47,5 +66,7 @@ export function createTokenizer(tokenMap: Map<string | RegExp, TerminalTokenClas
         column = 0;
       }
     }
+
+    return tokens;
   }
 }
