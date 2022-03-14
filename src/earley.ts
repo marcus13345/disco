@@ -1,15 +1,14 @@
-import * as chalk from 'chalk';
-
-const rgb2ansi = (r: number, g: number, b: number) => r * 36 + g * 6 + b + 16
-const ansi = (r: number, g = r, b = r) => chalk.ansi256(rgb2ansi(r, g, b));
+import { ansi } from './util/utils';
 
 export abstract class Token {
   l: number;
   c: number;
+  value: string;
   static terminal: boolean;
-  constructor(l: number, c: number) {
+  constructor(l: number, c: number, value: string) {
     this.l = l;
     this.c = c;
+    this.value = value;
   }
   static toString() {
     if(this.terminal) {
@@ -35,6 +34,10 @@ export abstract class Token {
 export class NonTerminal extends Token { static terminal: false = false };
 export class Terminal extends Token { static terminal: true = true };
 
+// these tokens are special, for formatting and generalization reasons.
+export class $Newline extends Terminal { }
+export class $Whitespace extends Terminal { }
+
 function isTerminal(tokenClass: TokenClass): tokenClass is TerminalTokenClass {
   return tokenClass.terminal;
 }
@@ -43,9 +46,9 @@ function isNonTerminal(tokenClass: TokenClass): tokenClass is NonTerminalTokenCl
   return !tokenClass.terminal;
 }
 
-type TerminalTokenClass = { new(...args: any[]) : Terminal, terminal: true }
-type NonTerminalTokenClass = { new(...args: any[]) : NonTerminal, terminal: false }
-type TokenClass = TerminalTokenClass | NonTerminalTokenClass;
+export type TerminalTokenClass = { new(...args: any[]) : Terminal, terminal: true }
+export type NonTerminalTokenClass = { new(...args: any[]) : NonTerminal, terminal: false }
+export type TokenClass = TerminalTokenClass | NonTerminalTokenClass;
 
 function getTokenClassFromToken(token: Token): TokenClass {
   return token.constructor as TokenClass;
@@ -96,7 +99,7 @@ export class Grammar {
     this.startingSymbol = startingSymbol;
   }
 
-  solveFor(tokens: Token[]) {
+  solveFor(tokens: Token[], options: { silent: boolean } = { silent: true }) {
     const state = new TimeMachine<SingleEarleyState>(() => new SingleEarleyState());
 
     const possibleStartingProductions = getProductionsForTokenClass(this.productions, this.startingSymbol)
@@ -132,12 +135,12 @@ export class Grammar {
 
     // expand all non terminals here
 
-    console.log(ansi(3, 3, 0)('s') + ansi(4, 4, 0)(state.currentIndex) + ': ' + this.startingSymbol.toString());
-    console.log(state.current.toString(), '\n')
+    if(!options.silent) console.log(ansi(3, 3, 0)('s') + ansi(4, 4, 0)(state.currentIndex) + ': ' + this.startingSymbol.toString());
+    if(!options.silent) console.log(state.current.toString(), '\n')
 
     for(const token of tokens) {
       state.newState();
-      console.log(ansi(3, 3, 0)('s') + ansi(4, 4, 0)(state.currentIndex) + ': ' + token.toString());
+      if(!options.silent) console.log(ansi(3, 3, 0)('s') + ansi(4, 4, 0)(state.currentIndex) + ': ' + token.toString());
 
       for(const partialMatch of state.previousState.partialMatches) {
         if(partialMatch.complete) continue;
@@ -148,11 +151,15 @@ export class Grammar {
       }
 
       console.assert(state.current.partialMatches.length !== 0, ansi(4, 1, 1)('unexpected token ' + token.toString()))
+      if(state.current.partialMatches.length === 0) {
+        if(!options.silent) console.log();
+        process.exit(1);
+      }
 
       state.current.partialMatches.forEach(expand);
       state.current.deduplicate()
 
-      console.log(state.current.toString(), '\n')
+      if(!options.silent) console.log(state.current.toString(), '\n')
     }
 
     const completedResolutions = [];

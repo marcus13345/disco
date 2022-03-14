@@ -28,11 +28,11 @@ export function tokenize(string) {
     if(token.trim() !== '') {
       if(keywords.has(token)) {
         const kwTokenClass = keywords.get(token);
-        tokens.push(new kwTokenClass(0, 0));
+        tokens.push(new kwTokenClass(0, 0, token));
       } else if (isStringDelim(token[0]))
         tokens.push(new $String(0, 0, token.substring(1, token.length - 1)));
       else if (token === 'NEWLINE')
-        tokens.push(new $Newline(0, 0))
+        tokens.push(new $Newline(0, 0, token))
       else
         tokens.push(new $Identifier(0, 0, token));
       resetToken();
