@@ -43,9 +43,9 @@ function isNonTerminal(tokenClass: TokenClass): tokenClass is NonTerminalTokenCl
   return !tokenClass.terminal;
 }
 
-type TerminalTokenClass = { new(...args: any[]) : Terminal, terminal: true }
-type NonTerminalTokenClass = { new(...args: any[]) : NonTerminal, terminal: false }
-type TokenClass = TerminalTokenClass | NonTerminalTokenClass;
+export type TerminalTokenClass = { new(...args: any[]) : Terminal, terminal: true }
+export type NonTerminalTokenClass = { new(...args: any[]) : NonTerminal, terminal: false }
+export type TokenClass = TerminalTokenClass | NonTerminalTokenClass;
 
 function getTokenClassFromToken(token: Token): TokenClass {
   return token.constructor as TokenClass;

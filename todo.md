@@ -1,6 +1,7 @@
 # Todo List
 
 [ ] colorize the assembly output
+- write a tokenizer & grammar for asm. then colorize it.
 [ ] add number support
 [ ] add comment support
 [ ] add fixed length array support
