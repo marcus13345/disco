@@ -1,0 +1,25 @@
+{
+    "name": "disco-language-support",
+    "displayName": "Disco Language Support",
+    "description": "",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.65.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "disco",
+            "aliases": ["Disco", "disco"],
+            "extensions": [".disco"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "disco",
+            "scopeName": "source.disco",
+            "path": "./syntaxes/disco.tmLanguage.json"
+        }]
+    }
+}

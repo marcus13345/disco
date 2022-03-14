@@ -1,14 +1,2 @@
-
-
 link log
-const test = "Hello"
-const    test2 ="Hello2"
-const test3 = 'Hello'
-const a="5"
-log(test)
-log("World")
-log("Hello\n \"Wor(l)d\"\n\\o/")
-
-
-
-
+log("Hello World")

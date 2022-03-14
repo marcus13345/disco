@@ -21,6 +21,13 @@ const statements = [];
 const localVariables = new Map();
 
 const sections = {
+  preamble() {
+    if(process.platform === 'darwin') {
+      return '  global _main\n';
+    } else {
+      return '';
+    }
+  },
   data() {
     const convert = ([name, xs]) => name + ' db ' + xs.join(',')
     return 'section .data\n  '
@@ -29,10 +36,17 @@ const sections = {
         .join('\n  ')
   },
   text() {
-    return 'section .text\n  global _start\n_start:\n  push rbp\n  mov rbp, rsp\n  '
+    if(process.platform === 'darwin') {
+      return 'section .text\n_main:\n  push rbp\n  mov rbp, rsp\n  '
       + statements.join('\n  ')
-      + '\n  mov rsp, rbp\n  pop rbp\n  mov rax, 60\n  mov rdi, 0\n  syscall\n'
+      + '\n  mov rsp, rbp\n  pop rbp\n  mov rax, 0x02000001\n  mov rdi, 0\n  syscall\n'
       + [...linkedLibraries.values()].map(({asmName, asm}) => asmName + ':\n' + asm).join('\n')
+    } else {
+      return 'section .text\n  global _start\n_start:\n  push rbp\n  mov rbp, rsp\n  '
+        + statements.join('\n  ')
+        + '\n  mov rsp, rbp\n  pop rbp\n  mov rax, 60\n  mov rdi, 0\n  syscall\n'
+        + [...linkedLibraries.values()].map(({asmName, asm}) => asmName + ':\n' + asm).join('\n')
+    }
   }
 }
 
@@ -123,5 +137,5 @@ export function compile(tree) {
   for(const item of tree.value) {
     compileStatement(item);
   }
-  return sections.data() + '\n' + sections.text();
+  return sections.preamble() + sections.data() + '\n' + sections.text();
 }

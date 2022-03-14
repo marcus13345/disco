@@ -1,0 +1,68 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Disco",
+	"patterns": [
+		{ "include": "#Keywords" },
+		{ "include": "#DoubleQuoteString" },
+		{ "include": "#SingleQuoteString" },
+		{ "include": "#Identifier" },
+    { "include": "#SingleLineComment" }
+	],
+	"repository": {
+		"Keywords": {
+			"patterns": [{
+				"name": "keyword.control.disco",
+				"match": "\\b(link|const)\\b"
+			}]
+		},
+		"Identifier": {
+			"patterns": [{
+				"name": "variable.other.constant.disco",
+				"match": "[A-Za-z][A-Za-z0-9]*"
+			}]
+		},
+    "SingleLineComment": {
+      "name": "comment.line.double-slash.disco",
+      "begin": "(^[ \\t]+)?(?=//)",
+      "end": "(?=$)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.whitespace.comment.leading.js"
+        }
+      },
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.js",
+          "begin": "//",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.js"
+            }
+          },
+          "end": "(?=$)"
+        }
+      ]
+    },
+		"DoubleQuoteString": {
+			"name": "string.quoted.double.disco",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{ "include": "#EscapeCharacter" }
+			]
+		},
+		"SingleQuoteString": {
+			"name": "string.quoted.single.disco",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{ "include": "#EscapeCharacter" }
+			]
+		},
+    "EscapeCharacter": {
+      "name": "constant.character.escape.disco",
+      "match": "\\\\."
+    }
+	},
+	"scopeName": "source.disco"
+}

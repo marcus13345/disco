@@ -41,11 +41,35 @@ try {
 
   console.log();
   console.log('=== nasm ===');
-  require('child_process').execSync('nasm -f elf64 disco_test.asm -o disco_test.o', { stdio: 'inherit' });
+  nasm();
   console.log('=== ld ===');
-  require('child_process').execSync('ld disco_test.o -o disco_test', { stdio: 'inherit' });
+  ld();
   console.log('=== execute ===');
   require('child_process').execSync('./disco_test', { stdio: 'inherit' });
 } catch (e) {
   process.exit(1);
+}
+
+function nasm() {
+  if(process.platform === 'darwin') {
+    require('child_process').execSync('nasm -f macho64 disco_test.asm -o disco_test.o', { stdio: 'inherit' });
+  } else {
+    require('child_process').execSync('nasm -f elf64 disco_test.asm -o disco_test.o', { stdio: 'inherit' });
+  }
+}
+
+function ld() {
+  if(process.platform === 'darwin') {
+    require('child_process').execSync([
+      'ld', 'disco_test.o',
+      '-o', 'disco_test',
+      '-macosx_version_min', '11.0',
+      '-L', '/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib',
+      '-lSystem'
+    ].join(' '), {
+      stdio: 'inherit'
+    });
+  } else {
+    require('child_process').execSync('ld disco_test.o -o disco_test', { stdio: 'inherit' });
+  }
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "build": "nasm -f elf64 disco.asm -o disco.o && ld disco.o -o disco",
     "start": "./disco",
-    "dev": "yarn build && yarn start"
+    "dev": "yarn build && yarn start",
+    "code": "code . --extensionDevelopmentPath=$(pwd)/support/vscode/disco-language-support"
   },
   "dependencies": {
     "@types/node": "^17.0.21",

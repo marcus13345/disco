@@ -1,28 +1,15 @@
+  global _main
 section .data
-  VVQDDBDZ db 72,101,108,108,111,0
-  EWXBIBSR db 72,101,108,108,111,50,0
-  PJQDTHUC db 72,101,108,108,111,0
-  ECIATSPU db 53,0
-  GTZCFAMK db 87,111,114,108,100,0
-  YDHYSXWS db 72,101,108,108,111,10,32,34,87,111,114,40,108,41,100,34,10,92,111,47,0
+  UMRRSQMF db 72,101,108,108,111,32,87,111,114,108,100,0
 section .text
-  global _start
-_start:
+_main:
   push rbp
   mov rbp, rsp
-  push VVQDDBDZ
-  push EWXBIBSR
-  push PJQDTHUC
-  push ECIATSPU
-  mov rdi, [rbp - 8]
-  call _log
-  mov rdi, GTZCFAMK
-  call _log
-  mov rdi, YDHYSXWS
+  mov rdi, UMRRSQMF
   call _log
   mov rsp, rbp
   pop rbp
-  mov rax, 60
+  mov rax, 0x02000001
   mov rdi, 0
   syscall
 _log:
@@ -37,12 +24,12 @@ _log_loop:
   jmp _log_loop
 _log_loop_end:
   mov rdx, rbx
-  mov rax, 1
+  mov rax, 0x02000004
   mov rdi, 1
   pop rsi
   syscall
   push 10
-  mov rax, 1
+  mov rax, 0x02000004
   mov rdi, 1
   mov rsi, rsp
   mov rdx, 1
