@@ -21,6 +21,13 @@ export class $RBracket extends Terminal { }
 export class $Comma extends Terminal { }
 export class $Colon extends Terminal { }
 export class $Minus extends Terminal { }
+export class $Bits extends Terminal { }
+export class $Default extends Terminal { }
+export class $Rel extends Terminal { }
+export class $Word extends Terminal { }
+export class $DWord extends Terminal { }
+export class $QWord extends Terminal { }
+export class $OWord extends Terminal { }
 
 // varying tokens
 export class $Identifier extends Terminal { }
@@ -34,3 +41,4 @@ export class $PointerDereference extends NonTerminal { }
 export class $Program extends NonTerminal { }
 export class $CompoundString extends NonTerminal { }
 export class $Value extends NonTerminal { }
+export class $DataSize extends NonTerminal { }

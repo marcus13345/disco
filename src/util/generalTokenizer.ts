@@ -1,72 +1,63 @@
-import { TerminalTokenClass } from "../earley";
-import { inspect } from 'util';
+import { Terminal, TerminalTokenClass } from "../earley";
 
-interface TokenMatcher {
-  match: RegExp | string,
-  token: TerminalTokenClass
+type TokenMatcher = [ RegExp, TerminalTokenClass ];
+
+interface Match {
+  regex: RegExp;
+  length: number;
+  tokenClass: TerminalTokenClass;
+  matchedString: string;
+}
+
+// this is kinda bullshit lol exec is a dumb method.
+function getFirstMatch(r: RegExp, str: string): [number, string] {
+  let matches = str.match(r);
+  if(matches === null) return [-1, ''];
+  return [matches.index, matches[0]];
 }
 
 export function createTokenizer(tokenMap: TokenMatcher[]) {
-  return function tokenize(str: string) {
-    let tokens = [];
-    let token = '';
-    let line = 1, column = 0;
-    for(let i = 0; i < str.length; i ++) {
-      const char = str[i];
-      const lookahead = (i < str.length - 1 ? str[i + 1] : null)
-      column++;
-      token += char;
 
-      for(const {match: matcher, token: tokenClass} of tokenMap) {
-        if(typeof matcher === 'string') {
-          if(matcher === token) {
-            if(tokenClass !== null) {
-              tokens.push(new tokenClass(line, column - token.length + 1, token));
-            }
-            token = '';
-          } else {
-            // dw about it
-          }
-        } else {
-          // matcher is regex...
-          // * note: this only tests if token contains a match, not that it _is_ a match
-          if(matcher.test(token)) {
-            if(lookahead) {
-              if(!matcher.test(token + lookahead)) {
-                // the next character would not match, so this must be the match.
-                // ! PS: it is possible that even though this would no longer
-                // ! match, another matcher could still match more.
-                // ! in those cases, we would want to expand on this logic
-                // ! to only match if there are no matches for any matcher
-                // ! in the lookahead.
-                // ! in practice this means tracking all possible non lookahead
-                // ! matches, then testing them for their lookahead afterwards
-                // ! in another loop, and only tokenizing if you have only one
-                // ! option, and that option will fail on the lookahead.
-                if(tokenClass !== null) {
-                  tokens.push(new tokenClass(line, column - token.length + 1, token));
-                }
-                token = '';
-              } else {
-                // the lookahead matches this too, so we should probably hold off
-                // on tokenizing it...
-              }
-            } else {
-              if(tokenClass !== null) {
-                tokens.push(new tokenClass(line, column - token.length + 1, token));
-              }
-              token = '';
-            }
-          }
+  return function tokenize(str: string, l = 1, c = 1): Terminal[] {
+
+    const possibleMatches: Match[] = tokenMap
+      .map(([regex, tokenClass]) => {
+        const [index, match] = getFirstMatch(regex, str);
+        if(index === -1) return null;
+        return {
+          regex,
+          tokenClass,
+          length: match.length,
+          matchedString: match
         }
-      }
+      })
+      .filter(v => !!v);
 
+    const longestLength = possibleMatches
+      .map(v => v.length)
+      .reduce((a, v) => a > v ? a : v, -Infinity);
+
+    const longestMatches = possibleMatches
+      .filter(v => v.length === longestLength);
+
+    console.assert(longestMatches.length > 0, 'No token matches found');
+
+    const [{tokenClass, matchedString}] = longestMatches;
+    const length = matchedString.length;
+    const token = tokenClass ? new tokenClass(l, c, matchedString) : null;
+
+    const rest = str.substring(length);
+
+    if(rest === '') return [ token ];
+
+    for(const char of matchedString) {
+      c ++;
       if(char === '\n') {
-        line ++;
-        column = 0;
+        l ++;
+        c = 1;
       }
     }
 
-    return tokens;
+    return token ? [token, ...tokenize(rest, l, c)] : tokenize(rest, l, c);
   }
 }

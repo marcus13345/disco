@@ -26,8 +26,12 @@ export default new Grammar([
   { left: t.$Line, right: [t.$Global, t.$Identifier],
     resolver: (_, {value}) => `  ${ansi(...keywordColor).bold('global')} ${ansi(...identifierColor)(value)}` },
   { left: t.$Line, right: [t.$Identifier, t.$Colon], resolver: ({value}) => `${ansi(...identifierColor)(value)}:` },
+  { left: t.$Line, right: [t.$Bits, t.$Number], resolver: (_, n) => `${ansi(...keywordColor).bold('bits')} ${ansi(...numberColor)(n.value)}`},
+  { left: t.$Line, right: [t.$Default, t.$Rel], resolver: () => `${ansi(...keywordColor).bold('default')} ${ansi(...keywordColor).bold('rel')}`},
 
   // actual instructions
+  { left: t.$Line, right: [t.$Push, t.$DataSize, t.$LBracket, t.$Rel, t.$Identifier, t.$RBracket],
+    resolver: (_, size, __, ___, identifier) => `  ${ansi(...instructionColor)('push')} ${size} ${ansi(...pointerColor)('[')}${ansi(...keywordColor).bold('rel')} ${ansi(...identifierColor)(identifier.value)}${ansi(...pointerColor)(']')}` },
   { left: t.$Line, right: [t.$Push, t.$Value], resolver: (_, v) => `  ${ansi(...instructionColor)('push')} ${v}` },
   { left: t.$Line, right: [t.$Pop, t.$Value], resolver: (_, v) => `  ${ansi(...instructionColor)('pop')} ${v}` },
   { left: t.$Line, right: [t.$Cmp, t.$Register, t.$Comma, t.$Value],
@@ -52,5 +56,10 @@ export default new Grammar([
   { left: t.$Value, right: [t.$Identifier], resolver: (v) => ansi(...identifierColor)(v.value) },
 
   { left: t.$CompoundString, right: [t.$Number], resolver: (n) => ansi(...numberColor)(n.value) },
-  { left: t.$CompoundString, right: [t.$Number, t.$Comma, t.$CompoundString], resolver: (n, _, ns) => ansi(...numberColor)(n.value) + ',' + ns }
+  { left: t.$CompoundString, right: [t.$Number, t.$Comma, t.$CompoundString], resolver: (n, _, ns) => ansi(...numberColor)(n.value) + ',' + ns },
+
+  { left: t.$DataSize, right: [t.$Word], resolver: (v) => ansi(...keywordColor).bold(v.value) },
+  { left: t.$DataSize, right: [t.$DWord], resolver: (v) => ansi(...keywordColor).bold(v.value) },
+  { left: t.$DataSize, right: [t.$QWord], resolver: (v) => ansi(...keywordColor).bold(v.value) },
+  { left: t.$DataSize, right: [t.$OWord], resolver: (v) => ansi(...keywordColor).bold(v.value) },
 ], t.$Program);

@@ -4,28 +4,62 @@ import {
   $Newline,
 } from "./../../earley";
 
-export default createTokenizer([
-  { match: /^[\r\t ]{1,}$/, token: null },
-  { match: 'section', token: tokens.$Section },
-  { match: 'db', token: tokens.$Db },
-  { match: 'global', token: tokens.$Global },
-  { match: '\n', token: $Newline },
-  { match: ':', token: tokens.$Colon },
-  { match: ',', token: tokens.$Comma },
-  { match: '[', token: tokens.$LBracket },
-  { match: ']', token: tokens.$RBracket },
-  { match: '-', token: tokens.$Minus },
-  { match: 'mov', token: tokens.$Mov },
-  { match: 'push', token: tokens.$Push },
-  { match: 'pop', token: tokens.$Pop },
-  { match: 'call', token: tokens.$Call },
-  { match: 'syscall', token: tokens.$Syscall },
-  { match: 'ret', token: tokens.$Ret },
-  { match: 'je', token: tokens.$Je },
-  { match: 'jmp', token: tokens.$Jmp },
-  { match: 'cmp', token: tokens.$Cmp },
-  { match: 'inc', token: tokens.$Inc },
-  { match: /^[0-9]{1,}$/, token: tokens.$Number },
-  { match: /^(rbp|rsp|rax|rcx|rbx|rdx|rdi|rsi|al|bl|cl|dl|ah|bh|ch|dh|ax|bx|cx|dx|eax|ebx|ecx|edx)$/, token: tokens.$Register },
-  { match: /^[A-Za-z._][A-Za-z_]{0,}$/, token: tokens.$Identifier },
+const asmTokenizer = createTokenizer([
+  // whitespaces
+  [ /^[\r\t ]{1,}/, null],
+  [ /^\n/, $Newline],
+
+  // keywords
+  [ /^section/, tokens.$Section],
+  [ /^db/, tokens.$Db],
+  [ /^global/, tokens.$Global],
+  [ /^bits/, tokens.$Bits],
+  [ /^default/, tokens.$Default],
+  [ /^rel/, tokens.$Rel],
+  [ /^word/, tokens.$Word],
+  [ /^dword/, tokens.$DWord],
+  [ /^qword/, tokens.$QWord],
+  [ /^oword/, tokens.$OWord],
+  
+  // punctuation
+  [ /^:/, tokens.$Colon],
+  [ /^,/, tokens.$Comma],
+  [ /^\[/, tokens.$LBracket],
+  [ /^\]/, tokens.$RBracket],
+  [ /^-/, tokens.$Minus],
+
+  // instructions
+  [ /^mov/, tokens.$Mov],
+  [ /^push/, tokens.$Push],
+  [ /^pop/, tokens.$Pop],
+  [ /^syscall/, tokens.$Syscall],
+  [ /^ret/, tokens.$Ret],
+  [ /^je/, tokens.$Je],
+  [ /^jmp/, tokens.$Jmp],
+  [ /^cmp/, tokens.$Cmp],
+  [ /^inc/, tokens.$Inc],
+
+  // pseudo-instructions
+  [ /^call/, tokens.$Call],
+
+  // 8 bit general purpose registers...
+  [ /^(al|ah|bl|bh|cl|ch|dl|dh)/, tokens.$Register ],
+  // 16 bit general purpose registers...
+  [ /^(ax|bx|cx|dx)/, tokens.$Register ],
+  // 32 bit general purpose registers...
+  [ /^(eax|ebx|ecx|edx)/, tokens.$Register ],
+  // 64 bit general purpose registers...
+  [ /^(rax|rbx|rcx|rdx)/, tokens.$Register ],
+  // other registers, idk.
+  [ /^(rbp|rsp|rdi|rsi)/, tokens.$Register],
+
+  // user-defined
+  [ /^[0-9]{1,}/, tokens.$Number],
+  [ /^0x[0-9A-Fa-f]{1,}/, tokens.$Number],
+  [ /^[A-Za-z._][A-Za-z_]{0,}/, tokens.$Identifier]
 ])
+export default asmTokenizer;
+
+import input from './testInput';
+import { printTokens } from "../utils";
+printTokens(asmTokenizer(input));

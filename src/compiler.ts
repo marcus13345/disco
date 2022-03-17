@@ -23,7 +23,7 @@ const localVariables = new Map();
 const sections = {
   preamble() {
     if(process.platform === 'darwin') {
-      return '  global _main\n';
+      return 'bits 64\ndefault rel\n';
     } else {
       return '';
     }
@@ -37,10 +37,21 @@ const sections = {
   },
   text() {
     if(process.platform === 'darwin') {
-      return 'section .text\n_main:\n  push rbp\n  mov rbp, rsp\n  '
-      + statements.join('\n  ')
-      + '\n  mov rsp, rbp\n  pop rbp\n  mov rax, 0x02000001\n  mov rdi, 0\n  syscall\n'
-      + [...linkedLibraries.values()].map(({asmName, asm}) => asmName + ':\n' + asm).join('\n')
+      return (
+        'section .text\n' +
+        '  global _main\n' +
+        '_main:\n' +
+        '  push rbp\n' +
+        '  mov rbp, rsp\n' +
+        statements.map(v => `  ${v}\n`).join('') +
+        '  mov rsp, rbp\n' +
+        '  pop rbp\n' +
+        '  mov rax, 0x02000001\n' +
+        '  mov rdi, 0\n' +
+        '  syscall\n' + [...linkedLibraries.values()]
+          .map(({asmName, asm}) => asmName + ':\n' + asm)
+          .join('\n')
+      );
     } else {
       return 'section .text\n  global _start\n_start:\n  push rbp\n  mov rbp, rsp\n  '
         + statements.join('\n  ')
@@ -106,7 +117,10 @@ function compileVariable(name, value) {
   });
   if(value.type === 'string') {
     const variableName = compileStringLiteral(value.value);
-    statements.push('push ' + variableName)
+    if(process.platform === 'darwin')
+      statements.push(`push qword [rel ${variableName}]`);
+    else
+      statements.push('push ' + variableName);
   } else {
     console.error('dont know how to set a variable to a non string lol')
   }

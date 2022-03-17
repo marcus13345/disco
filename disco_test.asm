@@ -1,15 +1,19 @@
+bits 64
+default rel
 section .data
-  EFDNYLFZ db 72,101,108,108,111,32,87,111,114,108,100,0
+  GSDGYLUR db 97,0
+  STVGNPWI db 104,101,108,108,111,32,119,111,114,108,100,0
 section .text
-  global _start
-_start:
+  global _main
+_main:
   push rbp
   mov rbp, rsp
-  mov rdi, EFDNYLFZ
+  push qword [rel GSDGYLUR]
+  mov rdi, STVGNPWI
   call _log
   mov rsp, rbp
   pop rbp
-  mov rax, 60
+  mov rax, 0x02000001
   mov rdi, 0
   syscall
 _log:
@@ -24,12 +28,12 @@ _log_loop:
   jmp _log_loop
 _log_loop_end:
   mov rdx, rbx
-  mov rax, 1
+  mov rax, 0x02000004
   mov rdi, 1
   pop rsi
   syscall
   push 10
-  mov rax, 1
+  mov rax, 0x02000004
   mov rdi, 1
   mov rsi, rsp
   mov rdx, 1

@@ -32,8 +32,8 @@ const asmFile = compile(ast)
 try {
   console.log();
   console.log('=== ASM ===');
-  console.log(colorize(asmFile));
   require('fs').writeFileSync('disco_test.asm', asmFile);
+  console.log(colorize(asmFile));
 
   console.log();
   console.log('=== nasm ===');
@@ -59,6 +59,7 @@ function ld() {
     require('child_process').execSync([
       'ld', 'disco_test.o',
       '-o', 'disco_test',
+      '-no_pie',
       '-macosx_version_min', '11.0',
       '-L', '/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib',
       '-lSystem'
