@@ -3,8 +3,8 @@
 import { readFileSync } from "fs";
 import { compile } from "./compiler";
 import grammar from "./grammar";
-import { tokenize } from "./tokenizer";
 import colorize from "./util/asm/colorize";
+import tokenize from "./util/disco/tokenizer";
 import { printTokens } from "./util/utils";
 
 console.log();

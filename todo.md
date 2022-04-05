@@ -3,8 +3,10 @@
 - [x] colorize the assembly output
 - [x] create generalTokenizer to make tokenization generic
 - [ ] rewrite disco tokenizer to the new generalTokenizer
+- [ ] explore defining non terminals in a grammar with just a string
+  - possibly using tagged template strings?? 
 - [ ] add an EOF token to earley, and yknow, add it to the tokenizer.
-- [ ] add number support
+- [ ] add number support in consts
 - [ ] add comment support
 - [ ] add fixed length array support
 - [ ] organize AST elements into classes

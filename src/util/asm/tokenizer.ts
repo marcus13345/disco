@@ -59,7 +59,3 @@ const asmTokenizer = createTokenizer([
   [ /^[A-Za-z._][A-Za-z_]{0,}/, tokens.$Identifier]
 ])
 export default asmTokenizer;
-
-import input from './testInput';
-import { printTokens } from "../utils";
-printTokens(asmTokenizer(input));

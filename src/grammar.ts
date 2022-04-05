@@ -1,50 +1,32 @@
-import { Grammar, NonTerminal, Production, Terminal, Token } from "./earley";
+import { $Newline, Grammar, NonTerminal, Production, Terminal, Token } from "./earley";
 import { AST } from './ast';
-
-export class $KeywordLink extends Terminal { }
-export class $KeywordEquals extends Terminal { }
-export class $KeywordLParen extends Terminal { }
-export class $KeywordRParen extends Terminal { }
-export class $KeywordConst extends Terminal { }
-
-export class $String extends Terminal {}
-export class $Identifier extends Terminal {}
-
-export class $Newline extends Terminal { }
-
-export class $Program extends NonTerminal { }
-export class $Statement extends NonTerminal { }
-export class $LinkStatement extends NonTerminal { }
-export class $VariableDeclaration extends NonTerminal { }
-export class $Expression extends NonTerminal { }
-export class $InvocationExpression extends NonTerminal { }
-export class $VariableReference extends NonTerminal { }
+import * as t from './util/disco/tokens';
 
 const ps: Production[] = [
-  { left: $Program, right: [$Statement], resolver: (s) => !!s ? AST.Body([s]) : AST.Body([]) },
-  { left: $Program, right: [$Statement, $Program], resolver: (s, ss) => !!s ? AST.Body([s, ...ss.value]) : ss},
+  { left: t.$Program, right: [t.$Statement], resolver: (s) => !!s ? AST.Body([s]) : AST.Body([]) },
+  { left: t.$Program, right: [t.$Statement, t.$Program], resolver: (s, ss) => !!s ? AST.Body([s, ...ss.value]) : ss},
 
-  { left: $Statement, right: [$Newline], resolver: () => false },
-  { left: $Statement, right: [$LinkStatement], resolver: a => a },
-  { left: $Statement, right: [$VariableDeclaration], resolver: a => a },
-  { left: $Statement, right: [$Expression], resolver: a => a },
+  { left: t.$Statement, right: [$Newline], resolver: () => false },
+  { left: t.$Statement, right: [t.$LinkStatement], resolver: a => a },
+  { left: t.$Statement, right: [t.$VariableDeclaration], resolver: a => a },
+  { left: t.$Statement, right: [t.$Expression], resolver: a => a },
 
-  { left: $Expression, right: [$String], resolver: (s: $String) => AST.String(s.value) },
-  { left: $Expression, right: [$InvocationExpression], resolver: a => a },
-  { left: $Expression, right: [$VariableReference], resolver: a => a },
+  { left: t.$Expression, right: [t.$String], resolver: (s: t.$String) => AST.String(s.value) },
+  { left: t.$Expression, right: [t.$InvocationExpression], resolver: a => a },
+  { left: t.$Expression, right: [t.$VariableReference], resolver: a => a },
 
-  { left: $VariableReference, right: [$Identifier], resolver: (identifier: $Identifier) => AST.VariableReference(identifier.value) },
+  { left: t.$VariableReference, right: [t.$Identifier], resolver: (identifier: t.$Identifier) => AST.VariableReference(identifier.value) },
 
-  { left: $InvocationExpression, right: [$Identifier, $KeywordLParen, $Expression, $KeywordRParen],
-    resolver: (identifier: $Identifier, _, arg: any, __) => AST.Invocation(identifier.value, arg) },
+  { left: t.$InvocationExpression, right: [t.$Identifier, t.$KeywordLParen, t.$Expression, t.$KeywordRParen],
+    resolver: (identifier: t.$Identifier, _, arg: any, __) => AST.Invocation(identifier.value, arg) },
 
-  { left: $VariableDeclaration, right: [$KeywordConst, $Identifier, $KeywordEquals, $Expression],
-    resolver: (_, identifier: $Identifier, __, value: any) => AST.Const(identifier.value, value) },
+  { left: t.$VariableDeclaration, right: [t.$KeywordConst, t.$Identifier, t.$KeywordEquals, t.$Expression],
+    resolver: (_, identifier: t.$Identifier, __, value: any) => AST.Const(identifier.value, value) },
 
-  { left: $LinkStatement, right: [$KeywordLink, $Identifier], resolver: (_, identifier: $Identifier) => AST.Link(identifier.value) },
+  { left: t.$LinkStatement, right: [t.$KeywordLink, t.$Identifier], resolver: (_, identifier: t.$Identifier) => AST.Link(identifier.value) },
 
 ]
 
-const grammar = new Grammar(ps, $Program);
+const grammar = new Grammar(ps, t.$Program);
 
 export default grammar;

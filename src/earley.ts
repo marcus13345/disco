@@ -37,6 +37,7 @@ export class Terminal extends Token { static terminal: true = true };
 // these tokens are special, for formatting and generalization reasons.
 export class $Newline extends Terminal { }
 export class $Whitespace extends Terminal { }
+export class $EOF extends Terminal { }
 
 function isTerminal(tokenClass: TokenClass): tokenClass is TerminalTokenClass {
   return tokenClass.terminal;
